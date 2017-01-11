@@ -765,32 +765,48 @@ SchemeTMz::calculateHxStepPML (time_step t, GridCoordinate3D HxStart, GridCoordi
         FieldPointValue* valGammaM1 = GammaM.getFieldPointValue (GammaM.getRelativePosition (shrinkCoord (yeeLayout.getEpsCoord (GridCoordinateFP3D (realCoord.getX (), realCoord.getY () - 0.5, yeeLayout.getMinEpsCoordFP ().getZ ())))));
         FieldPointValue* valGammaM2 = GammaM.getFieldPointValue (GammaM.getRelativePosition (shrinkCoord (yeeLayout.getEpsCoord (GridCoordinateFP3D (realCoord.getX (), realCoord.getY () + 0.5, yeeLayout.getMinEpsCoordFP ().getZ ())))));
 
+        FPValue omegaPM;
+        FPValue gammaM;
+        FPValue dividerOmega = 0;
+        FPValue dividerGamma = 0;
+
 #ifdef COMPLEX_FIELD_VALUES
-        FPValue omegaPM;
-        if (valOmegaPM1->getCurValue ().real () == 0
-           || valOmegaPM2->getCurValue ().real () == 0)
-        {
-          omegaPM = (valOmegaPM1->getCurValue ().real () + valOmegaPM2->getCurValue ().real ()) / sqrtf (2.0);
-        }
-        else
-        {
-          omegaPM = (valOmegaPM1->getCurValue ().real () + valOmegaPM2->getCurValue ().real ()) / 2.0;
-        }
-        FPValue gammaM = (valGammaM1->getCurValue ().real () + valGammaM2->getCurValue ().real ()) / 2;
+        FPValue omegaPM1 = valOmegaPM1->getCurValue ().real ();
+        FPValue omegaPM2 = valOmegaPM2->getCurValue ().real ();
+
+        FPValue gammaM1 = valGammaM1->getCurValue ().real ();
+        FPValue gammaM2 = valGammaM2->getCurValue ().real ();
 #else /* COMPLEX_FIELD_VALUES */
-        // FPValue omegaPM =
-        FPValue omegaPM;
+        FPValue omegaPM1 = valOmegaPM1->getCurValue ();
+        FPValue omegaPM2 = valOmegaPM2->getCurValue ();
+
+        FPValue gammaM1 = valGammaM1->getCurValue ();
+        FPValue gammaM2 = valGammaM2->getCurValue ();
+#endif /* !COMPLEX_FIELD_VALUES */
+
         if (valOmegaPM1->getCurValue () == 0
-           || valOmegaPM2->getCurValue () == 0)
+            || valOmegaPM2->getCurValue () == 0)
         {
-          omegaPM = (valOmegaPM1->getCurValue () + valOmegaPM2->getCurValue ()) / sqrtf (2.0);
+          dividerOmega = sqrtf (2.0);
+          dividerGamma = 2.0;
         }
         else
         {
-          omegaPM = (valOmegaPM1->getCurValue () + valOmegaPM2->getCurValue ()) / 2.0;
+          if (valOmegaPM1->getCurValue () != valOmegaPM2->getCurValue ()
+              || valGammaM1->getCurValue () != valGammaM2->getCurValue ())
+          {
+            ASSERT_MESSAGE ("Unimplemented metamaterials border condition");
+          }
+
+          dividerOmega = 2.0;
+          dividerGamma = 2.0;
         }
-        FPValue gammaM = (valGammaM1->getCurValue () + valGammaM2->getCurValue ()) / 2;
-#endif /* !COMPLEX_FIELD_VALUES */
+
+        ASSERT (dividerOmega != 0);
+        ASSERT (dividerGamma != 0);
+
+        omegaPM = (valOmegaPM1->getCurValue () + valOmegaPM2->getCurValue ()) / dividerOmega;
+        gammaM = (valGammaM1->getCurValue () + valGammaM2->getCurValue ()) / dividerGamma;
 
         /*
          * FIXME: precalculate coefficients
@@ -1111,31 +1127,48 @@ SchemeTMz::calculateHyStepPML (time_step t, GridCoordinate3D HyStart, GridCoordi
         FieldPointValue* valGammaM1 = GammaM.getFieldPointValue (GammaM.getRelativePosition (shrinkCoord (yeeLayout.getEpsCoord (GridCoordinateFP3D (realCoord.getX () - 0.5, realCoord.getY (), yeeLayout.getMinEpsCoordFP ().getZ ())))));
         FieldPointValue* valGammaM2 = GammaM.getFieldPointValue (GammaM.getRelativePosition (shrinkCoord (yeeLayout.getEpsCoord (GridCoordinateFP3D (realCoord.getX () + 0.5, realCoord.getY (), yeeLayout.getMinEpsCoordFP ().getZ ())))));
 
-  #ifdef COMPLEX_FIELD_VALUES
         FPValue omegaPM;
-        if (valOmegaPM1->getCurValue ().real () == 0
-            || valOmegaPM2->getCurValue ().real () == 0)
-        {
-          omegaPM = (valOmegaPM1->getCurValue ().real () + valOmegaPM2->getCurValue ().real ()) / sqrtf (2.0);
-        }
-        else
-        {
-          omegaPM = (valOmegaPM1->getCurValue ().real () + valOmegaPM2->getCurValue ().real ()) / 2.0;
-        }
-        FPValue gammaM = (valGammaM1->getCurValue ().real () + valGammaM2->getCurValue ().real ()) / 2;
-  #else /* COMPLEX_FIELD_VALUES */
-        FPValue omegaPM;
+        FPValue gammaM;
+        FPValue dividerOmega = 0;
+        FPValue dividerGamma = 0;
+
+#ifdef COMPLEX_FIELD_VALUES
+        FPValue omegaPM1 = valOmegaPM1->getCurValue ().real ();
+        FPValue omegaPM2 = valOmegaPM2->getCurValue ().real ();
+
+        FPValue gammaM1 = valGammaM1->getCurValue ().real ();
+        FPValue gammaM2 = valGammaM2->getCurValue ().real ();
+#else /* COMPLEX_FIELD_VALUES */
+        FPValue omegaPM1 = valOmegaPM1->getCurValue ();
+        FPValue omegaPM2 = valOmegaPM2->getCurValue ();
+
+        FPValue gammaM1 = valGammaM1->getCurValue ();
+        FPValue gammaM2 = valGammaM2->getCurValue ();
+#endif /* !COMPLEX_FIELD_VALUES */
+
         if (valOmegaPM1->getCurValue () == 0
-           || valOmegaPM2->getCurValue () == 0)
+            || valOmegaPM2->getCurValue () == 0)
         {
-          omegaPM = (valOmegaPM1->getCurValue () + valOmegaPM2->getCurValue ()) / sqrtf (2.0);
+          dividerOmega = sqrtf (2.0);
+          dividerGamma = 2.0;
         }
         else
         {
-          omegaPM = (valOmegaPM1->getCurValue () + valOmegaPM2->getCurValue ()) / 2.0;
+          if (valOmegaPM1->getCurValue () != valOmegaPM2->getCurValue ()
+              || valGammaM1->getCurValue () != valGammaM2->getCurValue ())
+          {
+            ASSERT_MESSAGE ("Unimplemented metamaterials border condition");
+          }
+
+          dividerOmega = 2.0;
+          dividerGamma = 2.0;
         }
-        FPValue gammaM = (valGammaM1->getCurValue () + valGammaM2->getCurValue ()) / 2;
-  #endif /* !COMPLEX_FIELD_VALUES */
+
+        ASSERT (dividerOmega != 0);
+        ASSERT (dividerGamma != 0);
+
+        omegaPM = (valOmegaPM1->getCurValue () + valOmegaPM2->getCurValue ()) / dividerOmega;
+        gammaM = (valGammaM1->getCurValue () + valGammaM2->getCurValue ()) / dividerGamma;
 
         /*
          * FIXME: precalculate coefficients
