@@ -693,6 +693,19 @@ Scheme3D::calculateEyStep (time_step t, GridCoordinate3D EyStart, GridCoordinate
                                          gridStep,
                                          eps * eps0);
 
+        GridCoordinateFP3D realCoord = yeeLayout.getEyCoordFP (posAbs);
+        if (! (realCoord.getX () >= yeeLayout.getLeftBorderTFSF ().getX ()
+               && realCoord.getX () <= yeeLayout.getRightBorderTFSF ().getX ()
+               && realCoord.getY () >= yeeLayout.getLeftBorderTFSF ().getY ()
+               && realCoord.getY () <= yeeLayout.getRightBorderTFSF ().getY ())
+            && (val.real () != 0 || val.imag () != 0))
+        {
+          if (val.real () * val.real () + val.imag () * val.imag () > 0.0001)
+          {
+            UNREACHABLE;
+          }
+        }
+
         valEy->setCurValue (val);
       }
     }

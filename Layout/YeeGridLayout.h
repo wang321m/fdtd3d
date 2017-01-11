@@ -224,9 +224,9 @@ public:
                                         leftBorderTotalField.getY () - 2.5 * sin (incidentWaveAngle1) * sin (incidentWaveAngle2),
                                         leftBorderTotalField.getZ () - 2.5 * cos (incidentWaveAngle1)))
   {
-    ASSERT (incidentWaveAngle1 == PhysicsConst::Pi / 2);
-    ASSERT (incidentWaveAngle2 == 0);
-    ASSERT (incidentWaveAngle3 == 0);
+    // ASSERT (incidentWaveAngle1 == PhysicsConst::Pi / 2);
+    // ASSERT (incidentWaveAngle2 == 0);
+    // ASSERT (incidentWaveAngle3 == 0);
 
     /* Ex is:
      *       1 <= x < 1 + size.getx()

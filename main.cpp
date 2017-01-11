@@ -190,7 +190,7 @@ int main (int argc, char** argv)
 #ifdef GRID_2D
   GridCoordinate2D overallSize (gridSizeX, gridSizeY);
 
-  SchemeTMz scheme (overallSize, totalTimeSteps, false, 2 * totalTimeSteps, true, GridCoordinate2D (20, 20), true, GridCoordinate2D (30, 30), /*PhysicsConst::Pi / 4*/0, false);
+  SchemeTMz scheme (overallSize, totalTimeSteps, false, 2 * totalTimeSteps, true, GridCoordinate2D (20, 20), false, GridCoordinate2D (30, 30), /*PhysicsConst::Pi / 4*/0, true);
   //SchemeTEz scheme (overallSize, totalTimeSteps, false, 2 * totalTimeSteps, true, GridCoordinate2D (20, 20), true, GridCoordinate2D (30, 30), /*PhysicsConst::Pi / 4*/0);
 #endif
 #ifdef GRID_3D
@@ -200,7 +200,7 @@ int main (int argc, char** argv)
 #endif
 #endif
 
-  scheme.initScheme (0.122364269, gridSizeX/7);
+  scheme.initScheme (0.122364269, gridSizeX/4);
 
 #if defined (PARALLEL_GRID)
   scheme.initProcess (rank);
