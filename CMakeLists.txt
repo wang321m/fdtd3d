@@ -2,7 +2,7 @@ cmake_minimum_required (VERSION 3.0.2)
 
 project (fdtd3d)
 
-find_package(CUDA REQUIRED)
+#find_package(CUDA REQUIRED)
 
 option(PRINT_MESSAGE "Print all messages" OFF)
 option(PARALLEL_GRID "Use parallel grid" OFF)

@@ -228,6 +228,11 @@ public:
     ASSERT (incidentWaveAngle2 == 0);
     ASSERT (incidentWaveAngle3 == 0);
 
+    ASSERT (sizeScatteredZone >= sizePML);
+
+    // ASSERT (sizeScatteredZone.getX () != 0
+    //         || (sizeScatteredZone.getX () == 0 && incidentWaveAngle2)
+
     /* Ex is:
      *       1 <= x < 1 + size.getx()
      *       0.5 <= y < 0.5 + size.getY()
