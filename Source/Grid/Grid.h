@@ -61,7 +61,10 @@ public:
 
   Grid (const TCoord& s, time_step step, const char * = "unnamed");
   Grid (time_step step, const char * = "unnamed");
+  Grid (const Grid &grid);
   ~Grid ();
+
+  Grid<TCoord> & operator = (const Grid<TCoord> &grid);
 
   const TCoord &getSize () const;
   TCoord getTotalPosition (TCoord) const;
@@ -122,6 +125,28 @@ Grid<TCoord>::Grid (time_step step, /**< default time step */
 } /* Grid<TCoord>::Grid */
 
 /**
+ * Copy constructor
+ */
+template <class TCoord>
+Grid<TCoord>::Grid (const Grid &grid) /**< grid to copy */
+  : size (grid.size)
+  , gridValues (grid.gridValues.size ())
+  , timeStep (grid.timeStep)
+  , gridName (grid.gridName)
+{
+
+  for (int i = 0; i < gridValues.size (); ++i)
+  {
+    gridValues[i] = new FieldPointValue ();
+    *gridValues[i] = *grid.gridValues[i];
+  }
+
+#if PRINT_MESSAGE
+  printf ("New grid '%s' with raw size: %lu.\n", gridName.data (), gridValues.size ());
+#endif /* PRINT_MESSAGE */
+} /* Grid<TCoord>::Grid */
+
+/**
  * Destructor of grid. Should free all field point values
  */
 template <class TCoord>
@@ -141,6 +166,29 @@ Grid<TCoord>::~Grid ()
   }
 #endif /* !CXX11_ENABLED */
 } /* Grid<TCoord>::~Grid */
+
+template <class TCoord>
+Grid<TCoord> &
+Grid<TCoord>::operator = (const Grid<TCoord> &grid)
+{
+  for (int i = 0; i < gridValues.size (); ++i)
+  {
+    delete gridValues[i];
+  }
+
+  size = grid.size;
+  gridValues.resize (grid.gridValues.size ());
+  timeStep = grid.timeStep;
+  gridName = grid.gridName;
+
+  for (int i = 0; i < gridValues.size (); ++i)
+  {
+    gridValues[i] = new FieldPointValue ();
+    *gridValues[i] = *grid.gridValues[i];
+  }
+
+  return *this;
+}
 
 /**
  * Get values of the grid
