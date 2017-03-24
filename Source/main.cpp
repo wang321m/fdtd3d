@@ -245,12 +245,12 @@ int main (int argc, char** argv)
   SchemeTEz scheme (&yeeLayout, overallSize, totalTimeSteps, false, 2 * totalTimeSteps, true, true, incidentWaveAngle2);
 #endif
 #ifdef GRID_3D
-  Scheme3D scheme (&yeeLayout, overallSize, totalTimeSteps, false, 2 * totalTimeSteps, true, false, true);
+  Scheme3D scheme (&yeeLayout, overallSize, totalTimeSteps, false, 2 * totalTimeSteps, true, true, true);
 #endif
 #endif
 
   scheme.initScheme (0.01 / 10, /* dx */
-                     PhysicsConst::SpeedOfLight / (0.01)); /* source frequency */
+                     PhysicsConst::SpeedOfLight / (0.02)); /* source frequency */
 
   scheme.initGrids ();
 
