@@ -138,8 +138,8 @@ int main (int argc, char** argv)
 
 #ifdef GRID_2D
   GridCoordinate2D overallSize (gridSizeX, gridSizeY);
-  GridCoordinate2D pmlSize (10, 10);
-  GridCoordinate2D tfsfSize (20, 20);
+  GridCoordinate2D pmlSize (20, 20);
+  GridCoordinate2D tfsfSize (23, 23);
 
   FPValue incidentWaveAngle1 = PhysicsConst::Pi / 2; /**< teta */
   FPValue incidentWaveAngle2 = 0; /**< phi */
@@ -233,7 +233,7 @@ int main (int argc, char** argv)
   ParallelGridCoordinate bufferSize (bufSize);
 
 #ifdef GRID_2D
-  SchemeTMz scheme (&yeeLayout, overallSize, bufferSize, totalTimeSteps, false, 2 * totalTimeSteps, true, false, incidentWaveAngle2, true);
+  SchemeTMz scheme (&yeeLayout, overallSize, bufferSize, totalTimeSteps, false, 2 * totalTimeSteps, true, true, incidentWaveAngle2, true);
   //SchemeTEz scheme (overallSize, bufferLeft, bufferRight, rank, numProcs, totalTimeSteps, false, 2 * totalTimeSteps, true, GridCoordinate2D (20, 20), true, GridCoordinate2D (30, 30), 0);
 #endif
 #ifdef GRID_3D
@@ -241,8 +241,8 @@ int main (int argc, char** argv)
 #endif
 #else
 #ifdef GRID_2D
-  //SchemeTMz scheme (overallSize, totalTimeSteps, false, 2 * totalTimeSteps, true, GridCoordinate2D (20, 20), false, GridCoordinate2D (30, 30), /*PhysicsConst::Pi / 4*/0, true);
-  SchemeTEz scheme (&yeeLayout, overallSize, totalTimeSteps, false, 2 * totalTimeSteps, true, true, incidentWaveAngle2);
+  SchemeTMz scheme (&yeeLayout, overallSize, totalTimeSteps, false, 2 * totalTimeSteps, true, true, incidentWaveAngle2, true);
+  //SchemeTEz scheme (&yeeLayout, overallSize, totalTimeSteps, false, 2 * totalTimeSteps, true, true, incidentWaveAngle2);
 #endif
 #ifdef GRID_3D
   Scheme3D scheme (&yeeLayout, overallSize, totalTimeSteps, false, 2 * totalTimeSteps, true, true, true);

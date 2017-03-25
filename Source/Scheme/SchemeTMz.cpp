@@ -1392,7 +1392,46 @@ SchemeTMz::performNSteps (time_step startStep, time_step numberTimeSteps, int du
       B1y.nextTimeStep ();
     }
 
-    if (t % 100 == 0)
+    if (processId == 2)
+    {
+      GridCoordinate2D pos (24, 1);
+      //GridCoordinate2D pos (24, Ez.getSize ().getY () / 2);
+      FieldPointValue *val = Ez.getFieldPointValue (pos);
+      FieldValue valCurTotal = val->getCurValue ();
+
+      GridCoordinateFP2D realCoord = shrinkCoord (yeeLayout->getEzCoordFP (pos));
+      GridCoordinateFP2D zeroCoordFP = yeeLayout->getZeroIncCoordFP ();
+
+      FPValue x = realCoord.getX () - zeroCoordFP.getX ();
+      FPValue y = realCoord.getY () - zeroCoordFP.getY ();
+      FPValue d = x * cos (incidentWaveAngle) + y * sin (incidentWaveAngle);
+      FPValue coordD1 = (FPValue) ((grid_iter) d);
+      FPValue coordD2 = coordD1 + 1;
+      FPValue proportionD2 = d - coordD1;
+      FPValue proportionD1 = 1 - proportionD2;
+
+      GridCoordinate1D pos1 (coordD1);
+      GridCoordinate1D pos2 (coordD2);
+
+      FieldPointValue *valE1 = EInc.getFieldPointValue (pos1);
+      FieldPointValue *valE2 = EInc.getFieldPointValue (pos2);
+
+      FieldValue valCurInc = proportionD1 * valE1->getPrevValue () + proportionD2 * valE2->getPrevValue ();
+
+      FieldValue valCurScat = valCurTotal - valCurInc;
+      printf ("=========== t=%u, Res: angle %f -> Incident: %f(%f,%f); Scattered: %f(%f,%f) ===========\n",
+              t,
+              yeeLayout->getIncidentWaveAngle2 (),
+              sqrt (SQR (valCurInc.real ()) + SQR (valCurInc.imag ())),
+              valCurInc.real (),
+              valCurInc.imag (),
+              sqrt (SQR (valCurScat.real ()) + SQR (valCurScat.imag ())),
+              valCurScat.real (),
+              valCurScat.imag ());
+
+    }
+
+    if (t % 1000 == 0)
     {
       if (dumpRes)
       {
@@ -1424,6 +1463,12 @@ SchemeTMz::performNSteps (time_step startStep, time_step numberTimeSteps, int du
     BMPDumper<GridCoordinate2D> dumperHy;
     dumperHy.init (stepLimit, CURRENT, processId, "2D-TMz-in-time-Hy");
     dumperHy.dumpGrid (Hy, GridCoordinate2D (0), Hy.getSize ());
+
+#ifdef PARALLEL_GRID
+    Grid<GridCoordinate2D> totalEz = Ez.gatherFullGrid ();
+    dumperEz.init (stepLimit, CURRENT, processId, "2D-TMz-in-time-total-Ez");
+    dumperEz.dumpGrid (totalEz, GridCoordinate2D (0), totalEz.getSize ());
+#endif
 
     // for (int i = 0; i < EzSize.getX (); ++i)
     // {
@@ -1865,8 +1910,10 @@ SchemeTMz::initGrids ()
 
       GridCoordinateFP2D size = shrinkCoord (yeeLayout->getEpsCoordFP (Eps.getTotalSize ()));
 
-      // if (posAbs.getX () > size.getX () / 2 && posAbs.getX () < yeeLayout->rightBorderTotalField.getX () - 10
-      //     && posAbs.getY () > yeeLayout->leftBorderTotalField.getY () + 10 && posAbs.getY () < yeeLayout->rightBorderTotalField.getY () - 10)
+      // if (posAbs.getX () >= 120 && posAbs.getX () < size.getX () - 120
+      //     && posAbs.getY () >= yeeLayout->getLeftBorderTFSF ().getY () + 10 && posAbs.getY () < yeeLayout->getRightBorderTFSF ().getY () - 10)
+      // // if (posAbs.getX () > size.getX () / 2 && posAbs.getX () < yeeLayout->rightBorderTotalField.getX () - 10
+      // //     && posAbs.getY () > yeeLayout->leftBorderTotalField.getY () + 10 && posAbs.getY () < yeeLayout->rightBorderTotalField.getY () - 10)
       // {
       //   valEps->setCurValue (4.0);
       // }
@@ -1912,7 +1959,7 @@ SchemeTMz::initGrids ()
       GridCoordinateFP2D size = shrinkCoord (yeeLayout->getEpsCoordFP (OmegaPE.getTotalSize ()));
 
       if (posAbs.getX () >= 120 && posAbs.getX () < size.getX () - 120
-          && posAbs.getY () >= yeeLayout->getLeftBorderPML ().getY () && posAbs.getY () < size.getY () - yeeLayout->getLeftBorderPML ().getY ())
+          && posAbs.getY () >= yeeLayout->getLeftBorderTFSF ().getY () + 10 && posAbs.getY () < yeeLayout->getRightBorderTFSF ().getY () - 10)
       {
 
       // if ((posAbs.getX () - size.getX () / 2) * (posAbs.getX () - size.getX () / 2)
@@ -1961,7 +2008,7 @@ SchemeTMz::initGrids ()
       // }
 
       if (posAbs.getX () >= 120 && posAbs.getX () < size.getX () - 120
-          && posAbs.getY () >= yeeLayout->getLeftBorderPML ().getY () && posAbs.getY () < size.getY () - yeeLayout->getLeftBorderPML ().getY ())
+          && posAbs.getY () >= yeeLayout->getLeftBorderTFSF ().getY () + 10 && posAbs.getY () < yeeLayout->getRightBorderTFSF ().getY () - 10)
       {
 
       // if ((posAbs.getX () - size.getX () / 2) * (posAbs.getX () - size.getX () / 2)
