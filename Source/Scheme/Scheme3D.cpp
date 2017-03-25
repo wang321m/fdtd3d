@@ -2432,6 +2432,28 @@ Scheme3D::performNSteps (time_step startStep, time_step numberTimeSteps, int dum
       B1z.nextTimeStep ();
     }
 
+    if (processId == 2)
+    {
+      GridCoordinate3D pos (14, 105, Ez.getTotalSize ().getZ () / 2);
+      FieldPointValue *val = Ez.getFieldPointValueByAbsolutePos (pos);
+      FieldValue valCurTotal = val->getCurValue ();
+
+      GridCoordinateFP3D realCoord = yeeLayout->getEzCoordFP (pos);
+      FieldValue valCurInc = yeeLayout->getEzFromIncidentE (approximateIncidentWaveE (realCoord));
+
+      FieldValue valCurScat = valCurTotal - valCurInc;
+      printf ("=========== t=%u, Res: angle %f -> Incident: %f(%f,%f); Scattered: %f(%f,%f) ===========\n",
+              t,
+              yeeLayout->getIncidentWaveAngle2 (),
+              sqrt (SQR (valCurInc.real ()) + SQR (valCurInc.imag ())),
+              valCurInc.real (),
+              valCurInc.imag (),
+              sqrt (SQR (valCurScat.real ()) + SQR (valCurScat.imag ())),
+              valCurScat.real (),
+              valCurScat.imag ());
+
+    }
+
     /*
      * FIXME: add dump step
      */
@@ -2766,7 +2788,7 @@ Scheme3D::performNSteps (time_step startStep, time_step numberTimeSteps, int dum
       val->setCurValue (val->getCurValue () - incVal);
     }
 
-    GridCoordinate3D pos (14, totalEz.getSize ().getY () / 2, totalEz.getSize ().getZ () / 2);
+    GridCoordinate3D pos (14, 105, totalEz.getSize ().getZ () / 2);
     FieldPointValue *val = totalEz.getFieldPointValue (pos);
     FieldValue valCurTotal = val->getCurValue ();
 
@@ -2956,7 +2978,7 @@ Scheme3D::performNSteps (time_step startStep, time_step numberTimeSteps, int dum
       val->setCurValue (val->getCurValue () - incVal);
     }
 
-    GridCoordinate3D pos (14, Ez.getSize ().getY () / 2, Ez.getSize ().getZ () / 2);
+    GridCoordinate3D pos (14, 105, Ez.getSize ().getZ () / 2);
     FieldPointValue *val = Ez.getFieldPointValue (pos);
     FieldValue valCurTotal = val->getCurValue ();
 
@@ -3611,7 +3633,7 @@ Scheme3D::initGrids ()
         GridCoordinateFP3D size = yeeLayout->getEpsCoordFP (OmegaPE.getTotalSize ());
 
         if (posAbs.getX () >= 95 && posAbs.getX () < 105
-            && posAbs.getY () >= 15 && posAbs.getY () < 35
+            && posAbs.getY () >= 95 && posAbs.getY () < 115
             && posAbs.getZ () >= 15 && posAbs.getZ () < 35)
         {
 
@@ -3651,7 +3673,7 @@ Scheme3D::initGrids ()
         GridCoordinateFP3D size = yeeLayout->getEpsCoordFP (OmegaPM.getTotalSize ());
 
         if (posAbs.getX () >= 95 && posAbs.getX () < 105
-            && posAbs.getY () >= 15 && posAbs.getY () < 35
+            && posAbs.getY () >= 95 && posAbs.getY () < 115
             && posAbs.getZ () >= 15 && posAbs.getZ () < 35)
         {
 //
