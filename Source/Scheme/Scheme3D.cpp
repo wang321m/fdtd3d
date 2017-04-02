@@ -2359,32 +2359,32 @@ Scheme3D::performNSteps (time_step startStep, time_step numberTimeSteps)
 
     if (!useTFSF)
     {
-#if defined (PARALLEL_GRID)
-      //if (processId == 0)
-#endif
-      {
-        grid_coord start;
-        grid_coord end;
-#ifdef PARALLEL_GRID
-        start = processId == 0 ? yeeLayout->getLeftBorderPML ().getZ () : 0;
-        end = processId == ParallelGrid::getParallelCore ()->getTotalProcCount () - 1 ? Ez.getRelativePosition (yeeLayout->getRightBorderPML ()).getZ () : Ez.getCurrentSize ().getZ ();
-#else /* PARALLEL_GRID */
-        start = yeeLayout->getLeftBorderPML ().getZ ();
-        end = yeeLayout->getRightBorderPML ().getZ ();
-#endif /* !PARALLEL_GRID */
-        for (grid_coord k = start; k < end; ++k)
-        {
-          GridCoordinate3D pos (20, EzSize.getY () / 2, k);
-          FieldPointValue* tmp = Ez.getFieldPointValue (pos);
-
-  #ifdef COMPLEX_FIELD_VALUES
-          tmp->setCurValue (FieldValue (sin (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency),
-                                        cos (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency)));
-  #else /* COMPLEX_FIELD_VALUES */
-          tmp->setCurValue (sin (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency));
-  #endif /* !COMPLEX_FIELD_VALUES */
-        }
-      }
+// #if defined (PARALLEL_GRID)
+//       //if (processId == 0)
+// #endif
+//       {
+//         grid_coord start;
+//         grid_coord end;
+// #ifdef PARALLEL_GRID
+//         start = processId == 0 ? yeeLayout->getLeftBorderPML ().getZ () : 0;
+//         end = processId == ParallelGrid::getParallelCore ()->getTotalProcCount () - 1 ? Ez.getRelativePosition (yeeLayout->getRightBorderPML ()).getZ () : Ez.getCurrentSize ().getZ ();
+// #else /* PARALLEL_GRID */
+//         start = yeeLayout->getLeftBorderPML ().getZ ();
+//         end = yeeLayout->getRightBorderPML ().getZ ();
+// #endif /* !PARALLEL_GRID */
+//         for (grid_coord k = start; k < end; ++k)
+//         {
+//           GridCoordinate3D pos (20, EzSize.getY () / 2, k);
+//           FieldPointValue* tmp = Ez.getFieldPointValue (pos);
+//
+//   #ifdef COMPLEX_FIELD_VALUES
+//           tmp->setCurValue (FieldValue (sin (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency),
+//                                         cos (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency)));
+//   #else /* COMPLEX_FIELD_VALUES */
+//           tmp->setCurValue (sin (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency));
+//   #endif /* !COMPLEX_FIELD_VALUES */
+//         }
+//       }
     }
 
     Ex.nextTimeStep ();
@@ -3119,23 +3119,32 @@ Scheme3D::performAmplitudeSteps (time_step startStep)
 
     if (!useTFSF)
     {
-#if defined (PARALLEL_GRID)
-      if (processId == 0)
-#endif
-      {
-        for (grid_coord k = yeeLayout->getLeftBorderPML ().getZ (); k < yeeLayout->getRightBorderPML ().getZ (); ++k)
-        {
-          GridCoordinate3D pos (EzSize.getX () / 8, EzSize.getY () / 2, k);
-          FieldPointValue* tmp = Ez.getFieldPointValue (pos);
+// #if defined (PARALLEL_GRID)
+//       if (processId == 0)
+// #endif
+//       {
+//         for (grid_coord k = yeeLayout->getLeftBorderPML ().getZ (); k < yeeLayout->getRightBorderPML ().getZ (); ++k)
+//         {
+//           GridCoordinate3D pos (EzSize.getX () / 8, EzSize.getY () / 2, k);
+//           FieldPointValue* tmp = Ez.getFieldPointValue (pos);
+//
+//   #ifdef COMPLEX_FIELD_VALUES
+//           tmp->setCurValue (FieldValue (sin (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency),
+//                                         cos (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency)));
+//   #else /* COMPLEX_FIELD_VALUES */
+//           tmp->setCurValue (sin (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency));
+//   #endif /* !COMPLEX_FIELD_VALUES */
+//         }
+//       }
+      GridCoordinate3D pos (EzSize.getX () / 2, EzSize.getY () / 2, EzSize.getZ () / 2);
+      FieldPointValue* tmp = Ez.getFieldPointValue (pos);
 
-  #ifdef COMPLEX_FIELD_VALUES
-          tmp->setCurValue (FieldValue (sin (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency),
-                                        cos (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency)));
-  #else /* COMPLEX_FIELD_VALUES */
-          tmp->setCurValue (sin (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency));
-  #endif /* !COMPLEX_FIELD_VALUES */
-        }
-      }
+#ifdef COMPLEX_FIELD_VALUES
+      tmp->setCurValue (FieldValue (sin (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency),
+                                    cos (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency)));
+#else /* COMPLEX_FIELD_VALUES */
+      tmp->setCurValue (sin (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency));
+#endif /* !COMPLEX_FIELD_VALUES */
     }
 
     for (int i = ExStart.getX (); i < ExEnd.getX (); ++i)

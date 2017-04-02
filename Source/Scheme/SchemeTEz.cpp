@@ -1074,20 +1074,30 @@ SchemeTEz::performNSteps (time_step startStep, time_step numberTimeSteps)
 
     if (!useTFSF)
     {
-#if defined (PARALLEL_GRID)
-      if (processId == 0)
-#endif
-      {
-        GridCoordinate2D pos (HzSize.getX () / 2, HzSize.getY () / 2);
-        FieldPointValue* tmp = Hz.getFieldPointValue (pos);
+// #if defined (PARALLEL_GRID)
+//       if (processId == 0)
+// #endif
+//       {
+//         GridCoordinate2D pos (HzSize.getX () / 2, HzSize.getY () / 2);
+//         FieldPointValue* tmp = Hz.getFieldPointValue (pos);
+//
+// #ifdef COMPLEX_FIELD_VALUES
+//         tmp->setCurValue (FieldValue (sin (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency),
+//                                       cos (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency)));
+// #else /* COMPLEX_FIELD_VALUES */
+//         tmp->setCurValue (sin (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency));
+// #endif /* !COMPLEX_FIELD_VALUES */
+//       }
+
+      GridCoordinate2D pos (HzSize.getX () / 2, HzSize.getY () / 2);
+      FieldPointValue* tmp = Hz.getFieldPointValue (pos);
 
 #ifdef COMPLEX_FIELD_VALUES
-        tmp->setCurValue (FieldValue (sin (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency),
-                                      cos (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency)));
+      tmp->setCurValue (FieldValue (sin (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency),
+                                    cos (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency)));
 #else /* COMPLEX_FIELD_VALUES */
-        tmp->setCurValue (sin (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency));
+      tmp->setCurValue (sin (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency));
 #endif /* !COMPLEX_FIELD_VALUES */
-      }
     }
 
     Hz.nextTimeStep ();
@@ -1295,20 +1305,20 @@ SchemeTEz::performAmplitudeSteps (time_step startStep)
 
     if (!useTFSF)
     {
-#if defined (PARALLEL_GRID)
-      if (processId == 0)
-#endif
-      {
-        GridCoordinate2D pos (HzSize.getX () / 2, HzSize.getY () / 2);
-        FieldPointValue* tmp = Hz.getFieldPointValue (pos);
-
-#ifdef COMPLEX_FIELD_VALUES
-        tmp->setCurValue (FieldValue (sin (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency),
-                                      cos (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency)));
-#else /* COMPLEX_FIELD_VALUES */
-        tmp->setCurValue (sin (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency));
-#endif /* !COMPLEX_FIELD_VALUES */
-      }
+// #if defined (PARALLEL_GRID)
+//       if (processId == 0)
+// #endif
+//       {
+//         GridCoordinate2D pos (HzSize.getX () / 2, HzSize.getY () / 2);
+//         FieldPointValue* tmp = Hz.getFieldPointValue (pos);
+//
+// #ifdef COMPLEX_FIELD_VALUES
+//         tmp->setCurValue (FieldValue (sin (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency),
+//                                       cos (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency)));
+// #else /* COMPLEX_FIELD_VALUES */
+//         tmp->setCurValue (sin (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency));
+// #endif /* !COMPLEX_FIELD_VALUES */
+//       }
     }
 
     for (int i = HzStart.getX (); i < HzEnd.getX (); ++i)
