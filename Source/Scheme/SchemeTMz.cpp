@@ -5,6 +5,9 @@
 #include "Kernels.h"
 #include "SchemeTMz.h"
 
+#include <ctime>
+#include <sys/time.h>
+
 #if defined (PARALLEL_GRID)
 #include <mpi.h>
 #endif
@@ -1286,8 +1289,15 @@ SchemeTMz::performNSteps (time_step startStep, time_step numberTimeSteps)
 
   time_step stepLimit = startStep + numberTimeSteps;
 
+  double sec_calc = 0;
+  double sec_share = 0;
+  double sec_total = 0;
+
   for (int t = startStep; t < stepLimit; ++t)
   {
+    struct timeval  tv1, tv2, tv3, tv4, tv5;
+    gettimeofday(&tv1, NULL);
+
     GridCoordinate3D EzStart = Ez.getComputationStart (yeeLayout->getEzStartDiff ());
     GridCoordinate3D EzEnd = Ez.getComputationEnd (yeeLayout->getEzEndDiff ());
 
@@ -1366,6 +1376,8 @@ SchemeTMz::performNSteps (time_step startStep, time_step numberTimeSteps)
 #endif /* !COMPLEX_FIELD_VALUES */
     }
 
+    gettimeofday(&tv2, NULL);
+
     Ez.nextTimeStep ();
 
     if (usePML)
@@ -1378,6 +1390,8 @@ SchemeTMz::performNSteps (time_step startStep, time_step numberTimeSteps)
       D1z.nextTimeStep ();
     }
 
+    gettimeofday(&tv3, NULL);
+
     if (useTFSF)
     {
       performPlaneWaveHSteps (t);
@@ -1385,6 +1399,8 @@ SchemeTMz::performNSteps (time_step startStep, time_step numberTimeSteps)
 
     performHxSteps (t, HxStart, HxEnd);
     performHySteps (t, HyStart, HyEnd);
+
+    gettimeofday(&tv4, NULL);
 
     Hx.nextTimeStep ();
     Hy.nextTimeStep ();
@@ -1418,7 +1434,31 @@ SchemeTMz::performNSteps (time_step startStep, time_step numberTimeSteps)
         dumperHy.dumpGrid (Hy, GridCoordinate2D (0), Hy.getSize ());
       }
     }
+
+    gettimeofday(&tv5, NULL);
+
+    double sec1 = (double)tv1.tv_sec + (double)(tv1.tv_usec) / 1000000;
+    double sec2 = (double)tv2.tv_sec + (double)(tv2.tv_usec) / 1000000;
+    double sec3 = (double)tv3.tv_sec + (double)(tv3.tv_usec) / 1000000;
+    double sec4 = (double)tv4.tv_sec + (double)(tv4.tv_usec) / 1000000;
+    double sec5 = (double)tv5.tv_sec + (double)(tv5.tv_usec) / 1000000;
+
+    double cur_sec_share = sec3 - sec2 + sec5 - sec4;
+    sec_share += cur_sec_share;
+
+    double cur_sec_total = sec5 - sec1;
+    sec_total += cur_sec_total;
+
+    double cur_sec_calc = cur_sec_total - cur_sec_share;
+    sec_calc += cur_sec_calc;
+
+    //printf ("%f %f %f\n", cur_sec_total, cur_sec_calc, cur_sec_share);
   }
+
+  printf ("Total %f: share %f  +  calc %f\n",
+          sec_total,
+          sec_share,
+          sec_calc);
 
   if (dumpRes)
   {
