@@ -20,6 +20,10 @@ typedef std::vector<FieldPointValue *> VectorFieldPointValues;
 template <class TCoord>
 class Grid
 {
+public:
+
+  FieldPointValue *valZero;
+
 protected:
 
   /**
@@ -102,6 +106,8 @@ Grid<TCoord>::Grid (const TCoord &s, /**< size of grid */
     gridValues[i] = NULLPTR;
   }
 
+  valZero = new FieldPointValue ();
+
 #if PRINT_MESSAGE
   printf ("New grid '%s' with raw size: %lu.\n", gridName.data (), gridValues.size ());
 #endif /* PRINT_MESSAGE */
@@ -116,6 +122,8 @@ Grid<TCoord>::Grid (time_step step, /**< default time step */
   : timeStep (step)
   , gridName (name)
 {
+  valZero = new FieldPointValue ();
+
 #if PRINT_MESSAGE
   printf ("New grid '%s' without size.\n", gridName.data ());
 #endif /* PRINT_MESSAGE */
@@ -263,7 +271,10 @@ template <class TCoord>
 FieldPointValue *
 Grid<TCoord>::getFieldPointValue (const TCoord &position) /**< coordinate in grid */
 {
-  ASSERT (isLegitIndex (position));
+  if (!isLegitIndex (position))
+  {
+    return valZero;
+  }
 
   grid_iter coord = calculateIndexFromPosition (position);
 
@@ -279,7 +290,10 @@ template <class TCoord>
 FieldPointValue *
 Grid<TCoord>::getFieldPointValue (grid_iter coord) /**< index in grid */
 {
-  ASSERT (coord >= 0 && coord < size.calculateTotalCoord ());
+  if (! (coord >= 0 && coord < size.calculateTotalCoord ()))
+  {
+    return valZero;
+  }
 
   FieldPointValue* value = gridValues[coord];
 

@@ -132,15 +132,28 @@ SchemeTMz::calculateEzStep (time_step t, GridCoordinate3D EzStart, GridCoordinat
 {
   FPValue eps0 = PhysicsConst::Eps0;
 
-  for (int i = EzStart.getX (); i < EzEnd.getX (); ++i)
+  grid_coord diffY1 = 0;
+  grid_coord diffY2 = 0;
+
+#ifdef PARALLEL_BUFFER_DIMENSION_2D_XY
+  diffY1 = ParallelGrid::getParallelCore ()->ParallelGridCore::getHasD ();
+  diffY2 = ParallelGrid::getParallelCore ()->ParallelGridCore::getHasU ();
+#endif
+
+  for (grid_coord i = ParallelGrid::getParallelCore ()->ParallelGridCore::getHasL (); i < Ez.getSize ().getX () - ParallelGrid::getParallelCore ()->ParallelGridCore::getHasR (); ++i)
   {
-    for (int j = EzStart.getY (); j < EzEnd.getY (); ++j)
+    for (grid_coord j = diffY1; j < Ez.getSize ().getY () - diffY2; ++j)
     {
       GridCoordinate2D pos (i, j);
       GridCoordinate2D posAbs = Ez.getTotalPosition (pos);
       GridCoordinateFP2D realCoord = shrinkCoord (yeeLayout->getEzCoordFP (posAbs));
 
       FieldPointValue* valEz = Ez.getFieldPointValue (pos);
+
+      FieldValue prevHx1;
+      FieldValue prevHx2;
+      FieldValue prevHy1;
+      FieldValue prevHy2;
 
       GridCoordinate2D posLeft = shrinkCoord (yeeLayout->getEzCircuitElement (GridCoordinate3D (pos), LayoutDirection::LEFT));
       GridCoordinate2D posRight = shrinkCoord (yeeLayout->getEzCircuitElement (GridCoordinate3D (pos), LayoutDirection::RIGHT));
@@ -155,15 +168,61 @@ SchemeTMz::calculateEzStep (time_step t, GridCoordinate3D EzStart, GridCoordinat
       FPValue eps = valEps->getCurValue ();
 #endif /* !COMPLEX_FIELD_VALUES */
 
-      FieldPointValue* valHy1 = Hy.getFieldPointValue (posRight);
-      FieldPointValue* valHy2 = Hy.getFieldPointValue (posLeft);
-      FieldPointValue* valHx1 = Hx.getFieldPointValue (posUp);
-      FieldPointValue* valHx2 = Hx.getFieldPointValue (posDown);
+//       if (i < EzStart.getX ())
+//       {
+// #ifdef COMPLEX_FIELD_VALUES
+//         prevHy2 = FieldValue (0.0, 0.0);
+// #else
+//         prevHy2 = FieldValue (0.0);
+// #endif
+//       }
+//       else
+      {
+        FieldPointValue* valHy2 = Hy.getFieldPointValue (posLeft);
+        prevHy2 = valHy2->getPrevValue ();
+      }
 
-      FieldValue prevHx1 = valHx1->getPrevValue ();
-      FieldValue prevHx2 = valHx2->getPrevValue ();
-      FieldValue prevHy1 = valHy1->getPrevValue ();
-      FieldValue prevHy2 = valHy2->getPrevValue ();
+      // if (i >= EzEnd.getX ())
+      // {
+      // #ifdef COMPLEX_FIELD_VALUES
+      //   prevHy1 = FieldValue (0.0, 0.0);
+      // #else
+      //   prevHy1 = FieldValue (0.0);
+      // #endif
+      // }
+      // else
+      {
+        FieldPointValue* valHy1 = Hy.getFieldPointValue (posRight);
+        prevHy1 = valHy1->getPrevValue ();
+      }
+
+      // if (j < EzStart.getY ())
+      // {
+      // #ifdef COMPLEX_FIELD_VALUES
+      //   prevHx2 = FieldValue (0.0, 0.0);
+      // #else
+      //   prevHx2 = FieldValue (0.0);
+      // #endif
+      // }
+      // else
+      {
+        FieldPointValue* valHx2 = Hx.getFieldPointValue (posDown);
+        prevHx2 = valHx2->getPrevValue ();
+      }
+
+      // if (j >= EzEnd.getY ())
+      // {
+      // #ifdef COMPLEX_FIELD_VALUES
+      //   prevHx1 = FieldValue (0.0, 0.0);
+      // #else
+      //   prevHx1 = FieldValue (0.0);
+      // #endif
+      // }
+      // else
+      {
+        FieldPointValue* valHx1 = Hx.getFieldPointValue (posUp);
+        prevHx1 = valHx1->getPrevValue ();
+      }
 
       if (useTFSF)
       {
@@ -559,9 +618,17 @@ SchemeTMz::calculateHxStep (time_step t, GridCoordinate3D HxStart, GridCoordinat
 {
   FPValue mu0 = PhysicsConst::Mu0;
 
-  for (int i = HxStart.getX (); i < HxEnd.getX (); ++i)
+  grid_coord diffY1 = 0;
+  grid_coord diffY2 = 0;
+
+#ifdef PARALLEL_BUFFER_DIMENSION_2D_XY
+  diffY1 = ParallelGrid::getParallelCore ()->ParallelGridCore::getHasD ();
+  diffY2 = ParallelGrid::getParallelCore ()->ParallelGridCore::getHasU ();
+#endif
+
+  for (grid_coord i = ParallelGrid::getParallelCore ()->ParallelGridCore::getHasL (); i < Hx.getSize ().getX () - ParallelGrid::getParallelCore ()->ParallelGridCore::getHasR (); ++i)
   {
-    for (int j = HxStart.getY (); j < HxEnd.getY (); ++j)
+    for (grid_coord j = diffY1; j < Hx.getSize ().getY () - diffY2; ++j)
     {
       GridCoordinate2D pos (i, j);
       GridCoordinate2D posAbs = Hx.getTotalPosition (pos);
@@ -569,23 +636,79 @@ SchemeTMz::calculateHxStep (time_step t, GridCoordinate3D HxStart, GridCoordinat
 
       FieldPointValue* valHx = Hx.getFieldPointValue (pos);
 
+      FieldValue prevEz1;
+      FieldValue prevEz2;
+
       GridCoordinate2D posDown = shrinkCoord (yeeLayout->getHxCircuitElement (pos, LayoutDirection::DOWN));
       GridCoordinate2D posUp = shrinkCoord (yeeLayout->getHxCircuitElement (pos, LayoutDirection::UP));
 
-      FieldPointValue* valMu1 = Mu.getFieldPointValue (Mu.getRelativePosition (shrinkCoord (yeeLayout->getEpsCoord (GridCoordinateFP3D (realCoord.getX (), realCoord.getY () + 0.5, yeeLayout->getMinEpsCoordFP ().getZ ())))));
-      FieldPointValue* valMu2 = Mu.getFieldPointValue (Mu.getRelativePosition (shrinkCoord (yeeLayout->getEpsCoord (GridCoordinateFP3D (realCoord.getX (), realCoord.getY () - 0.5, yeeLayout->getMinEpsCoordFP ().getZ ())))));
+      GridCoordinate2D posMu1 = shrinkCoord (yeeLayout->getEpsCoord (GridCoordinateFP3D (realCoord.getX (), realCoord.getY () + 0.5, yeeLayout->getMinEpsCoordFP ().getZ ())));
+      GridCoordinate2D posMu2 = shrinkCoord (yeeLayout->getEpsCoord (GridCoordinateFP3D (realCoord.getX (), realCoord.getY () - 0.5, yeeLayout->getMinEpsCoordFP ().getZ ())));
+
+      FieldValue mu1;
+      FieldValue mu2;
+
+      // if (! (posMu1 < Mu.getTotalSize ()))
+      // {
+      //   #ifdef COMPLEX_FIELD_VALUES
+      //         mu1 = FieldValue (0.0, 0.0);
+      //   #else /* COMPLEX_FIELD_VALUES */
+      //         mu1 = FieldValue (0.0);
+      //   #endif /* !COMPLEX_FIELD_VALUES */
+      // }
+      // else
+      // {
+      //   FieldPointValue* valMu1 = Mu.getFieldPointValue (Mu.getRelativePosition (posMu1));
+      //   mu1 = valMu1->getCurValue ();
+      // }
+
+      // if (! (posMu2 < Mu.getTotalSize ()))
+      // {
+      //   #ifdef COMPLEX_FIELD_VALUES
+      //         mu2 = FieldValue (0.0, 0.0);
+      //   #else /* COMPLEX_FIELD_VALUES */
+      //         mu2 = FieldValue (0.0);
+      //   #endif /* !COMPLEX_FIELD_VALUES */
+      // }
+      // else
+      {
+        FieldPointValue* valMu2 = Mu.getFieldPointValue (Mu.getRelativePosition (posMu2));
+        mu2 = valMu2->getCurValue ();
+      }
 
 #ifdef COMPLEX_FIELD_VALUES
-      FPValue mu = (valMu1->getCurValue ().real () + valMu2->getCurValue ().real ()) / 2;
+      FPValue mu = (/*mu1.real () + */mu2.real ())/* / 2*/;
 #else /* COMPLEX_FIELD_VALUES */
-      FPValue mu = (valMu1->getCurValue () + valMu2->getCurValue ()) / 2;
+      FPValue mu = (/*mu1 + */mu2)/* / 2*/;
 #endif /* !COMPLEX_FIELD_VALUES */
 
-      FieldPointValue* valEz1 = Ez.getFieldPointValue (posUp);
-      FieldPointValue* valEz2 = Ez.getFieldPointValue (posDown);
+      // if (j < HxStart.getY ())
+      // {
+      // #ifdef COMPLEX_FIELD_VALUES
+      //   prevEz2 = FieldValue (0.0, 0.0);
+      // #else
+      //   prevEz2 = FieldValue (0.0);
+      // #endif
+      // }
+      // else
+      {
+        FieldPointValue* valEz2 = Ez.getFieldPointValue (posDown);
+        prevEz2 = valEz2->getPrevValue ();
+      }
 
-      FieldValue prevEz1 = valEz1->getPrevValue ();
-      FieldValue prevEz2 = valEz2->getPrevValue ();
+      // if (j >= HxEnd.getY ())
+      // {
+      // #ifdef COMPLEX_FIELD_VALUES
+      //   prevEz1 = FieldValue (0.0, 0.0);
+      // #else
+      //   prevEz1 = FieldValue (0.0);
+      // #endif
+      // }
+      // else
+      {
+        FieldPointValue* valEz1 = Ez.getFieldPointValue (posUp);
+        prevEz1 = valEz1->getPrevValue ();
+      }
 
       if (useTFSF)
       {
@@ -928,9 +1051,17 @@ SchemeTMz::calculateHyStep (time_step t, GridCoordinate3D HyStart, GridCoordinat
 {
   FPValue mu0 = PhysicsConst::Mu0;
 
-  for (int i = HyStart.getX (); i < HyEnd.getX (); ++i)
+  grid_coord diffY1 = 0;
+  grid_coord diffY2 = 0;
+
+#ifdef PARALLEL_BUFFER_DIMENSION_2D_XY
+  diffY1 = ParallelGrid::getParallelCore ()->ParallelGridCore::getHasD ();
+  diffY2 = ParallelGrid::getParallelCore ()->ParallelGridCore::getHasU ();
+#endif
+
+  for (grid_coord i = ParallelGrid::getParallelCore ()->ParallelGridCore::getHasL (); i < Hy.getSize ().getX () - ParallelGrid::getParallelCore ()->ParallelGridCore::getHasR (); ++i)
   {
-    for (int j = HyStart.getY (); j < HyEnd.getY (); ++j)
+    for (grid_coord j = diffY1; j < Hy.getSize ().getY () - diffY2; ++j)
     {
       GridCoordinate2D pos (i, j);
       GridCoordinate2D posAbs = Hy.getTotalPosition (pos);
@@ -938,23 +1069,79 @@ SchemeTMz::calculateHyStep (time_step t, GridCoordinate3D HyStart, GridCoordinat
 
       FieldPointValue* valHy = Hy.getFieldPointValue (pos);
 
+      FieldValue prevEz1;
+      FieldValue prevEz2;
+
       GridCoordinate2D posLeft = shrinkCoord (yeeLayout->getHyCircuitElement (pos, LayoutDirection::LEFT));
       GridCoordinate2D posRight = shrinkCoord (yeeLayout->getHyCircuitElement (pos, LayoutDirection::RIGHT));
 
-      FieldPointValue* valMu1 = Mu.getFieldPointValue (Mu.getRelativePosition (shrinkCoord (yeeLayout->getEpsCoord (GridCoordinateFP3D (realCoord.getX () - 0.5, realCoord.getY (), yeeLayout->getMinEpsCoordFP ().getZ ())))));
-      FieldPointValue* valMu2 = Mu.getFieldPointValue (Mu.getRelativePosition (shrinkCoord (yeeLayout->getEpsCoord (GridCoordinateFP3D (realCoord.getX () + 0.5, realCoord.getY (), yeeLayout->getMinEpsCoordFP ().getZ ())))));
+      GridCoordinate2D posMu1 = shrinkCoord (yeeLayout->getEpsCoord (GridCoordinateFP3D (realCoord.getX () + 0.5, realCoord.getY (), yeeLayout->getMinEpsCoordFP ().getZ ())));
+      GridCoordinate2D posMu2 = shrinkCoord (yeeLayout->getEpsCoord (GridCoordinateFP3D (realCoord.getX () - 0.5, realCoord.getY (), yeeLayout->getMinEpsCoordFP ().getZ ())));
 
-#ifdef COMPLEX_FIELD_VALUES
-      FPValue mu = (valMu1->getCurValue ().real () + valMu2->getCurValue ().real ()) / 2;
-#else /* COMPLEX_FIELD_VALUES */
-      FPValue mu = (valMu1->getCurValue () + valMu2->getCurValue ()) / 2;
-#endif /* !COMPLEX_FIELD_VALUES */
+      FieldValue mu1;
+      FieldValue mu2;
 
-      FieldPointValue* valEz1 = Ez.getFieldPointValue (posRight);
-      FieldPointValue* valEz2 = Ez.getFieldPointValue (posLeft);
+      // if (! (posMu1 < Mu.getTotalSize ()))
+      // {
+      //   #ifdef COMPLEX_FIELD_VALUES
+      //         mu1 = FieldValue (0.0, 0.0);
+      //   #else /* COMPLEX_FIELD_VALUES */
+      //         mu1 = FieldValue (0.0);
+      //   #endif /* !COMPLEX_FIELD_VALUES */
+      // }
+      // else
+      // {
+      //   FieldPointValue* valMu1 = Mu.getFieldPointValue (Mu.getRelativePosition (posMu1));
+      //   mu1 = valMu1->getCurValue ();
+      // }
 
-      FieldValue prevEz1 = valEz1->getPrevValue ();
-      FieldValue prevEz2 = valEz2->getPrevValue ();
+      // if (! (posMu2 < Mu.getTotalSize ()))
+      // {
+      //   #ifdef COMPLEX_FIELD_VALUES
+      //         mu2 = FieldValue (0.0, 0.0);
+      //   #else /* COMPLEX_FIELD_VALUES */
+      //         mu2 = FieldValue (0.0);
+      //   #endif /* !COMPLEX_FIELD_VALUES */
+      // }
+      // else
+      {
+        FieldPointValue* valMu2 = Mu.getFieldPointValue (Mu.getRelativePosition (posMu2));
+        mu2 = valMu2->getCurValue ();
+      }
+
+      #ifdef COMPLEX_FIELD_VALUES
+            FPValue mu = (/*mu1.real () + */mu2.real ())/* / 2*/;
+      #else /* COMPLEX_FIELD_VALUES */
+            FPValue mu = (/*mu1 + */mu2)/* / 2*/;
+      #endif /* !COMPLEX_FIELD_VALUES */
+
+      // if (i < HyStart.getX ())
+      // {
+      // #ifdef COMPLEX_FIELD_VALUES
+      //   prevEz2 = FieldValue (0.0, 0.0);
+      // #else
+      //   prevEz2 = FieldValue (0.0);
+      // #endif
+      // }
+      // else
+      {
+        FieldPointValue* valEz2 = Ez.getFieldPointValue (posLeft);
+        prevEz2 = valEz2->getPrevValue ();
+      }
+
+      // if (i >= HyEnd.getX ())
+      // {
+      // #ifdef COMPLEX_FIELD_VALUES
+      //   prevEz1 = FieldValue (0.0, 0.0);
+      // #else
+      //   prevEz1 = FieldValue (0.0);
+      // #endif
+      // }
+      // else
+      {
+        FieldPointValue* valEz1 = Ez.getFieldPointValue (posRight);
+        prevEz1 = valEz1->getPrevValue ();
+      }
 
       if (useTFSF)
       {
@@ -1293,9 +1480,18 @@ SchemeTMz::performNSteps (time_step startStep, time_step numberTimeSteps)
   double sec_share = 0;
   double sec_total = 0;
 
+  double Ezcalc = 0;
+  double Ezshare = 0;
+
+  double Hxcalc = 0;
+  double Hxshare = 0;
+
+  double Hycalc = 0;
+  double Hyshare = 0;
+
   for (int t = startStep; t < stepLimit; ++t)
   {
-    struct timeval  tv1, tv2, tv3, tv4, tv5;
+    struct timeval  tv1, tv2, tv3, tv4, tv5, tv6, tv7, tv8, tv9, tv10, tv11, tv12, tv13, tv14, tv15;
     gettimeofday(&tv1, NULL);
 
     GridCoordinate3D EzStart = Ez.getComputationStart (yeeLayout->getEzStartDiff ());
@@ -1312,7 +1508,11 @@ SchemeTMz::performNSteps (time_step startStep, time_step numberTimeSteps)
       performPlaneWaveESteps (t);
     }
 
+    gettimeofday(&tv6, NULL);
+
     performEzSteps (t, EzStart, EzEnd);
+
+    gettimeofday(&tv7, NULL);
 
     if (!useTFSF)
     {
@@ -1378,7 +1578,11 @@ SchemeTMz::performNSteps (time_step startStep, time_step numberTimeSteps)
 
     gettimeofday(&tv2, NULL);
 
+    gettimeofday(&tv8, NULL);
+
     Ez.nextTimeStep ();
+
+    gettimeofday(&tv9, NULL);
 
     if (usePML)
     {
@@ -1397,13 +1601,19 @@ SchemeTMz::performNSteps (time_step startStep, time_step numberTimeSteps)
       performPlaneWaveHSteps (t);
     }
 
+    gettimeofday(&tv10, NULL);
     performHxSteps (t, HxStart, HxEnd);
+    gettimeofday(&tv11, NULL);
     performHySteps (t, HyStart, HyEnd);
+    gettimeofday(&tv12, NULL);
 
     gettimeofday(&tv4, NULL);
 
+    gettimeofday(&tv13, NULL);
     Hx.nextTimeStep ();
+    gettimeofday(&tv14, NULL);
     Hy.nextTimeStep ();
+    gettimeofday(&tv15, NULL);
 
     if (usePML)
     {
@@ -1452,10 +1662,68 @@ SchemeTMz::performNSteps (time_step startStep, time_step numberTimeSteps)
     double cur_sec_calc = cur_sec_total - cur_sec_share;
     sec_calc += cur_sec_calc;
 
-    //printf ("%f %f %f\n", cur_sec_total, cur_sec_calc, cur_sec_share);
-  }
+    Ezcalc += (double)tv7.tv_sec + (double)(tv7.tv_usec) / 1000000 - (double)tv6.tv_sec - (double)(tv6.tv_usec) / 1000000;
+    Ezshare += (double)tv9.tv_sec + (double)(tv9.tv_usec) / 1000000 - (double)tv8.tv_sec - (double)(tv8.tv_usec) / 1000000;
 
-  printf ("Total %f: share %f  +  calc %f\n",
+    Hxcalc += (double)tv11.tv_sec + (double)(tv11.tv_usec) / 1000000 - (double)tv10.tv_sec - (double)(tv10.tv_usec) / 1000000;
+    Hxshare += (double)tv14.tv_sec + (double)(tv14.tv_usec) / 1000000 - (double)tv13.tv_sec - (double)(tv13.tv_usec) / 1000000;
+
+    Hycalc += (double)tv12.tv_sec + (double)(tv12.tv_usec) / 1000000 - (double)tv11.tv_sec - (double)(tv11.tv_usec) / 1000000;
+    Hyshare += (double)tv15.tv_sec + (double)(tv15.tv_usec) / 1000000 - (double)tv14.tv_sec - (double)(tv14.tv_usec) / 1000000;
+
+    //printf ("%f %f %f\n", cur_sec_total, cur_sec_calc, cur_sec_share);
+    // printf ("t: %u; Ez: %lu, %lu; Hx: %lu, %lu; Hy: %lu, %lu\n",
+    //         t,
+    //         EzEnd.getX () - EzStart.getX (),
+    //         EzEnd.getY () - EzStart.getY (),
+    //         HxEnd.getX () - HxStart.getX (),
+    //         HxEnd.getY () - HxStart.getY (),
+    //         HyEnd.getX () - HyStart.getX (),
+    //         HyEnd.getY () - HyStart.getY ());
+  }
+  // printf ("#%u; Ez: %lu, %lu; Hx: %lu, %lu; Hy: %lu, %lu\n",
+  // ParallelGrid::getParallelCore ()->getProcessId (),
+  // Ez.getSize ().getX (),
+  // Ez.getSize ().getY (),
+  // Hx.getSize ().getX (),
+  // Hx.getSize ().getY (),
+  // Hy.getSize ().getX (),
+  // Hy.getSize ().getY ());
+
+  grid_coord diffX1 = ParallelGrid::getParallelCore ()->ParallelGridCore::getHasL ();
+  grid_coord diffX2 = ParallelGrid::getParallelCore ()->ParallelGridCore::getHasR ();
+
+  grid_coord diffY1 = 0;
+  grid_coord diffY2 = 0;
+
+#ifdef PARALLEL_BUFFER_DIMENSION_2D_XY
+  diffY1 = ParallelGrid::getParallelCore ()->ParallelGridCore::getHasD ();
+  diffY2 = ParallelGrid::getParallelCore ()->ParallelGridCore::getHasU ();
+#endif
+
+  printf ("#%u -- Ez: %lu, %lu | calc %f, share %f\n",
+          ParallelGrid::getParallelCore ()->getProcessId (),
+          (long unsigned)Ez.getSize ().getX () - diffX1 - diffX2,
+          (long unsigned)Ez.getSize ().getY () - diffY1 - diffY2,
+          Ezcalc,
+          Ezshare);
+
+  printf ("#%u -- Hx: %lu, %lu | calc %f, share %f\n",
+          ParallelGrid::getParallelCore ()->getProcessId (),
+          (long unsigned)Hx.getSize ().getX () - diffX1 - diffX2,
+          (long unsigned)Hx.getSize ().getY () - diffY1 - diffY2,
+          Hxcalc,
+          Hxshare);
+
+  printf ("#%u -- Hy: %lu, %lu | calc %f, share %f\n",
+          ParallelGrid::getParallelCore ()->getProcessId (),
+          (long unsigned)Hy.getSize ().getX () - diffX1 - diffX2,
+          (long unsigned)Hy.getSize ().getY () - diffY1 - diffY2,
+          Hycalc,
+          Hyshare);
+
+  printf ("#%u -- Total %f: share %f  +  calc %f\n",
+          ParallelGrid::getParallelCore ()->getProcessId (),
           sec_total,
           sec_share,
           sec_calc);

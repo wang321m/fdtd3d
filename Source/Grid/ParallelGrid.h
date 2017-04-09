@@ -208,6 +208,9 @@ class ParallelGrid: public ParallelGridBase
 {
 private:
 
+  ParallelGridCoordinate posStart;
+  ParallelGridCoordinate posEnd;
+
   /**
    * Static data shared between all parallel grid on this computational node
    */

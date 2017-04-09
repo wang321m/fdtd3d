@@ -94,25 +94,53 @@ YeeGridLayout::getEzCircuitElement (GridCoordinate3D coord, LayoutDirection dir)
     case LayoutDirection::LEFT:
     {
       coordFP = coordFP - GridCoordinateFP3D (0.5, 0, 0);
-      coordFP = coordFP - minHyCoordFP;
+      if (! (coordFP > minHyCoordFP))
+      {
+        coordFP = GridCoordinateFP3D (0, 0, 0);
+      }
+      else
+      {
+        coordFP = coordFP - minHyCoordFP;
+      }
       break;
     }
     case LayoutDirection::RIGHT:
     {
       coordFP = coordFP + GridCoordinateFP3D (0.5, 0, 0);
-      coordFP = coordFP - minHyCoordFP;
+      if (! (coordFP > minHyCoordFP))
+      {
+        coordFP = GridCoordinateFP3D (0, 0, 0);
+      }
+      else
+      {
+        coordFP = coordFP - minHyCoordFP;
+      }
       break;
     }
     case LayoutDirection::DOWN:
     {
       coordFP = coordFP - GridCoordinateFP3D (0, 0.5, 0);
-      coordFP = coordFP - minHxCoordFP;
+      if (! (coordFP > minHxCoordFP))
+      {
+        coordFP = GridCoordinateFP3D (0, 0, 0);
+      }
+      else
+      {
+        coordFP = coordFP - minHxCoordFP;
+      }
       break;
     }
     case LayoutDirection::UP:
     {
       coordFP = coordFP + GridCoordinateFP3D (0, 0.5, 0);
-      coordFP = coordFP - minHxCoordFP;
+      if (! (coordFP > minHxCoordFP))
+      {
+        coordFP = GridCoordinateFP3D (0, 0, 0);
+      }
+      else
+      {
+        coordFP = coordFP - minHxCoordFP;
+      }
       break;
     }
     case LayoutDirection::BACK:
@@ -136,13 +164,27 @@ YeeGridLayout::getHxCircuitElement (GridCoordinate3D coord, LayoutDirection dir)
     case LayoutDirection::DOWN:
     {
       coordFP = coordFP - GridCoordinateFP3D (0, 0.5, 0);
-      coordFP = coordFP - minEzCoordFP;
+      if (! (coordFP > minEzCoordFP))
+      {
+        coordFP = GridCoordinateFP3D (0, 0, 0);
+      }
+      else
+      {
+        coordFP = coordFP - minEzCoordFP;
+      }
       break;
     }
     case LayoutDirection::UP:
     {
       coordFP = coordFP + GridCoordinateFP3D (0, 0.5, 0);
-      coordFP = coordFP - minEzCoordFP;
+      if (! (coordFP > minEzCoordFP))
+      {
+        coordFP = GridCoordinateFP3D (0, 0, 0);
+      }
+      else
+      {
+        coordFP = coordFP - minEzCoordFP;
+      }
       break;
     }
     case LayoutDirection::BACK:
@@ -178,13 +220,27 @@ YeeGridLayout::getHyCircuitElement (GridCoordinate3D coord, LayoutDirection dir)
     case LayoutDirection::LEFT:
     {
       coordFP = coordFP - GridCoordinateFP3D (0.5, 0, 0);
-      coordFP = coordFP - minEzCoordFP;
+      if (! (coordFP > minEzCoordFP))
+      {
+        coordFP = GridCoordinateFP3D (0, 0, 0);
+      }
+      else
+      {
+        coordFP = coordFP - minEzCoordFP;
+      }
       break;
     }
     case LayoutDirection::RIGHT:
     {
       coordFP = coordFP + GridCoordinateFP3D (0.5, 0, 0);
-      coordFP = coordFP - minEzCoordFP;
+      if (! (coordFP > minEzCoordFP))
+      {
+        coordFP = GridCoordinateFP3D (0, 0, 0);
+      }
+      else
+      {
+        coordFP = coordFP - minEzCoordFP;
+      }
       break;
     }
     case LayoutDirection::BACK:
