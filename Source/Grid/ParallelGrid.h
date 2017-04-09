@@ -206,6 +206,8 @@ typedef std::vector<MPI_Request> VectorRequests;
  */
 class ParallelGrid: public ParallelGridBase
 {
+  ParallelGridCoordinate posStart;
+
 private:
 
   /**
