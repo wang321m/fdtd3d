@@ -2357,35 +2357,35 @@ Scheme3D::performNSteps (time_step startStep, time_step numberTimeSteps)
     performEySteps (t, EyStart, EyEnd);
     performEzSteps (t, EzStart, EzEnd);
 
-    if (!useTFSF)
-    {
-#if defined (PARALLEL_GRID)
-      //if (processId == 0)
-#endif
-      {
-        grid_coord start;
-        grid_coord end;
-#ifdef PARALLEL_GRID
-        start = processId == 0 ? yeeLayout->getLeftBorderPML ().getZ () : 0;
-        end = processId == ParallelGrid::getParallelCore ()->getTotalProcCount () - 1 ? Ez.getRelativePosition (yeeLayout->getRightBorderPML ()).getZ () : Ez.getCurrentSize ().getZ ();
-#else /* PARALLEL_GRID */
-        start = yeeLayout->getLeftBorderPML ().getZ ();
-        end = yeeLayout->getRightBorderPML ().getZ ();
-#endif /* !PARALLEL_GRID */
-        for (grid_coord k = start; k < end; ++k)
-        {
-          GridCoordinate3D pos (20, EzSize.getY () / 2, k);
-          FieldPointValue* tmp = Ez.getFieldPointValue (pos);
-
-  #ifdef COMPLEX_FIELD_VALUES
-          tmp->setCurValue (FieldValue (sin (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency),
-                                        cos (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency)));
-  #else /* COMPLEX_FIELD_VALUES */
-          tmp->setCurValue (sin (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency));
-  #endif /* !COMPLEX_FIELD_VALUES */
-        }
-      }
-    }
+//     if (!useTFSF)
+//     {
+// #if defined (PARALLEL_GRID)
+//       //if (processId == 0)
+// #endif
+//       {
+//         grid_coord start;
+//         grid_coord end;
+// #ifdef PARALLEL_GRID
+//         start = processId == 0 ? yeeLayout->getLeftBorderPML ().getZ () : 0;
+//         end = processId == ParallelGrid::getParallelCore ()->getTotalProcCount () - 1 ? Ez.getRelativePosition (yeeLayout->getRightBorderPML ()).getZ () : Ez.getCurrentSize ().getZ ();
+// #else /* PARALLEL_GRID */
+//         start = yeeLayout->getLeftBorderPML ().getZ ();
+//         end = yeeLayout->getRightBorderPML ().getZ ();
+// #endif /* !PARALLEL_GRID */
+//         for (grid_coord k = start; k < end; ++k)
+//         {
+//           GridCoordinate3D pos (20, EzSize.getY () / 2, k);
+//           FieldPointValue* tmp = Ez.getFieldPointValue (pos);
+//
+//   #ifdef COMPLEX_FIELD_VALUES
+//           tmp->setCurValue (FieldValue (sin (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency),
+//                                         cos (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency)));
+//   #else /* COMPLEX_FIELD_VALUES */
+//           tmp->setCurValue (sin (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency));
+//   #endif /* !COMPLEX_FIELD_VALUES */
+//         }
+//       }
+//     }
 
     Ex.nextTimeStep ();
     Ey.nextTimeStep ();
@@ -2435,231 +2435,231 @@ Scheme3D::performNSteps (time_step startStep, time_step numberTimeSteps)
     /*
      * FIXME: add dump step
      */
-    if (t % 1000 == 0)
-    {
-      if (dumpRes)
-      {
-        BMPDumper<GridCoordinate3D> dumperEx;
-        DATDumper<GridCoordinate3D> dumperDATEx;
-        dumperDATEx.init (t, CURRENT, processId, "3D-in-time-Ex");
-        dumperDATEx.dumpGrid (Ex, GridCoordinate3D (0), Ex.getSize ());
-
-        BMPDumper<GridCoordinate3D> dumperEy;
-        DATDumper<GridCoordinate3D> dumperDATEy;
-        dumperDATEy.init (t, CURRENT, processId, "3D-in-time-Ey");
-        dumperDATEy.dumpGrid (Ey, GridCoordinate3D (0), Ey.getSize ());
-
-        BMPDumper<GridCoordinate3D> dumperEz;
-        DATDumper<GridCoordinate3D> dumperDATEz;
-        dumperDATEz.init (t, CURRENT, processId, "3D-in-time-Ez");
-        dumperDATEz.dumpGrid (Ez, GridCoordinate3D (0), Ez.getSize ());
-
-        BMPDumper<GridCoordinate3D> dumperHx;
-        DATDumper<GridCoordinate3D> dumperDATHx;
-        dumperDATHx.init (t, CURRENT, processId, "3D-in-time-Hx");
-        dumperDATHx.dumpGrid (Hx, GridCoordinate3D (0), Hx.getSize ());
-
-        BMPDumper<GridCoordinate3D> dumperHy;
-        DATDumper<GridCoordinate3D> dumperDATHy;
-        dumperDATHy.init (t, CURRENT, processId, "3D-in-time-Hy");
-        dumperDATHy.dumpGrid (Hy, GridCoordinate3D (0), Hy.getSize ());
-
-        BMPDumper<GridCoordinate3D> dumperHz;
-        DATDumper<GridCoordinate3D> dumperDATHz;
-        dumperDATHz.init (t, CURRENT, processId, "3D-in-time-Hz");
-        dumperDATHz.dumpGrid (Hz, GridCoordinate3D (0), Hz.getSize ());
-        //
-        // BMPDumper<GridCoordinate3D> dumperHx;
-        // dumperHx.init (t, CURRENT, processId, "2D-TMz-in-time-Hx");
-        // dumperHx.dumpGrid (Hx);
-        //
-        // BMPDumper<GridCoordinate3D> dumperHy;
-        // dumperHy.init (t, CURRENT, processId, "2D-TMz-in-time-Hy");
-        // dumperHy.dumpGrid (Hy);
-#ifdef PARALLEL_GRID
-        Grid<GridCoordinate3D> totalEx = Ex.gatherFullGrid ();
-        Grid<GridCoordinate3D> totalEy = Ey.gatherFullGrid ();
-        Grid<GridCoordinate3D> totalEz = Ez.gatherFullGrid ();
-        Grid<GridCoordinate3D> totalHx = Hx.gatherFullGrid ();
-        Grid<GridCoordinate3D> totalHy = Hy.gatherFullGrid ();
-        Grid<GridCoordinate3D> totalHz = Hz.gatherFullGrid ();
-
-        for (grid_iter i = 0; i < totalEx.getSize ().calculateTotalCoord (); ++i)
-        {
-          FieldPointValue *val = totalEx.getFieldPointValue (i);
-
-          GridCoordinate3D pos = totalEx.calculatePositionFromIndex (i);
-          GridCoordinate3D posAbs = totalEx.getTotalPosition (pos);
-          GridCoordinateFP3D realCoord = yeeLayout->getExCoordFP (posAbs);
-
-          GridCoordinateFP3D leftTFSF = convertCoord (yeeLayout->getLeftBorderTFSF ());
-          GridCoordinateFP3D rightTFSF = convertCoord (yeeLayout->getRightBorderTFSF ());
-
-          if (realCoord.getX () < leftTFSF.getX ()
-              || realCoord.getY () < leftTFSF.getY ()
-              || realCoord.getZ () < leftTFSF.getZ ()
-              || realCoord.getX () > rightTFSF.getX ()
-              || realCoord.getY () > rightTFSF.getY ()
-              || realCoord.getZ () > rightTFSF.getZ ())
-          {
-            continue;
-          }
-
-          FieldValue incVal = yeeLayout->getExFromIncidentE (approximateIncidentWaveE (realCoord));
-
-          val->setCurValue (val->getCurValue () - incVal);
-        }
-
-        for (grid_iter i = 0; i < totalEy.getSize ().calculateTotalCoord (); ++i)
-        {
-          FieldPointValue *val = totalEy.getFieldPointValue (i);
-
-          GridCoordinate3D pos = totalEy.calculatePositionFromIndex (i);
-          GridCoordinate3D posAbs = totalEy.getTotalPosition (pos);
-          GridCoordinateFP3D realCoord = yeeLayout->getEyCoordFP (posAbs);
-
-          GridCoordinateFP3D leftTFSF = convertCoord (yeeLayout->getLeftBorderTFSF ());
-          GridCoordinateFP3D rightTFSF = convertCoord (yeeLayout->getRightBorderTFSF ());
-
-          if (realCoord.getX () < leftTFSF.getX ()
-              || realCoord.getY () < leftTFSF.getY ()
-              || realCoord.getZ () < leftTFSF.getZ ()
-              || realCoord.getX () > rightTFSF.getX ()
-              || realCoord.getY () > rightTFSF.getY ()
-              || realCoord.getZ () > rightTFSF.getZ ())
-          {
-            continue;
-          }
-
-          FieldValue incVal = yeeLayout->getEyFromIncidentE (approximateIncidentWaveE (realCoord));
-
-          val->setCurValue (val->getCurValue () - incVal);
-        }
-
-        for (grid_iter i = 0; i < totalEz.getSize ().calculateTotalCoord (); ++i)
-        {
-          FieldPointValue *val = totalEz.getFieldPointValue (i);
-
-          GridCoordinate3D pos = totalEz.calculatePositionFromIndex (i);
-          GridCoordinate3D posAbs = totalEz.getTotalPosition (pos);
-          GridCoordinateFP3D realCoord = yeeLayout->getEzCoordFP (posAbs);
-
-          GridCoordinateFP3D leftTFSF = convertCoord (yeeLayout->getLeftBorderTFSF ());
-          GridCoordinateFP3D rightTFSF = convertCoord (yeeLayout->getRightBorderTFSF ());
-
-          if (realCoord.getX () < leftTFSF.getX ()
-              || realCoord.getY () < leftTFSF.getY ()
-              || realCoord.getZ () < leftTFSF.getZ ()
-              || realCoord.getX () > rightTFSF.getX ()
-              || realCoord.getY () > rightTFSF.getY ()
-              || realCoord.getZ () > rightTFSF.getZ ())
-          {
-            continue;
-          }
-
-          FieldValue incVal = yeeLayout->getEzFromIncidentE (approximateIncidentWaveE (realCoord));
-
-          val->setCurValue (val->getCurValue () - incVal);
-        }
-
-        for (grid_iter i = 0; i < totalHx.getSize ().calculateTotalCoord (); ++i)
-        {
-          FieldPointValue *val = totalHx.getFieldPointValue (i);
-
-          GridCoordinate3D pos = totalHx.calculatePositionFromIndex (i);
-          GridCoordinate3D posAbs = totalHx.getTotalPosition (pos);
-          GridCoordinateFP3D realCoord = yeeLayout->getHxCoordFP (posAbs);
-
-          GridCoordinateFP3D leftTFSF = convertCoord (yeeLayout->getLeftBorderTFSF ());
-          GridCoordinateFP3D rightTFSF = convertCoord (yeeLayout->getRightBorderTFSF ());
-
-          if (realCoord.getX () < leftTFSF.getX ()
-              || realCoord.getY () < leftTFSF.getY ()
-              || realCoord.getZ () < leftTFSF.getZ ()
-              || realCoord.getX () > rightTFSF.getX ()
-              || realCoord.getY () > rightTFSF.getY ()
-              || realCoord.getZ () > rightTFSF.getZ ())
-          {
-            continue;
-          }
-
-          FieldValue incVal = yeeLayout->getHxFromIncidentH (approximateIncidentWaveH (realCoord));
-
-          val->setCurValue (val->getCurValue () - incVal);
-        }
-
-        for (grid_iter i = 0; i < totalHy.getSize ().calculateTotalCoord (); ++i)
-        {
-          FieldPointValue *val = totalHy.getFieldPointValue (i);
-
-          GridCoordinate3D pos = totalHy.calculatePositionFromIndex (i);
-          GridCoordinate3D posAbs = totalHy.getTotalPosition (pos);
-          GridCoordinateFP3D realCoord = yeeLayout->getHyCoordFP (posAbs);
-
-          GridCoordinateFP3D leftTFSF = convertCoord (yeeLayout->getLeftBorderTFSF ());
-          GridCoordinateFP3D rightTFSF = convertCoord (yeeLayout->getRightBorderTFSF ());
-
-          if (realCoord.getX () < leftTFSF.getX ()
-              || realCoord.getY () < leftTFSF.getY ()
-              || realCoord.getZ () < leftTFSF.getZ ()
-              || realCoord.getX () > rightTFSF.getX ()
-              || realCoord.getY () > rightTFSF.getY ()
-              || realCoord.getZ () > rightTFSF.getZ ())
-          {
-            continue;
-          }
-
-          FieldValue incVal = yeeLayout->getHyFromIncidentH (approximateIncidentWaveH (realCoord));
-
-          val->setCurValue (val->getCurValue () - incVal);
-        }
-
-        for (grid_iter i = 0; i < totalHz.getSize ().calculateTotalCoord (); ++i)
-        {
-          FieldPointValue *val = totalHz.getFieldPointValue (i);
-
-          GridCoordinate3D pos = totalHz.calculatePositionFromIndex (i);
-          GridCoordinate3D posAbs = totalHz.getTotalPosition (pos);
-          GridCoordinateFP3D realCoord = yeeLayout->getHzCoordFP (posAbs);
-
-          GridCoordinateFP3D leftTFSF = convertCoord (yeeLayout->getLeftBorderTFSF ());
-          GridCoordinateFP3D rightTFSF = convertCoord (yeeLayout->getRightBorderTFSF ());
-
-          if (realCoord.getX () < leftTFSF.getX ()
-              || realCoord.getY () < leftTFSF.getY ()
-              || realCoord.getZ () < leftTFSF.getZ ()
-              || realCoord.getX () > rightTFSF.getX ()
-              || realCoord.getY () > rightTFSF.getY ()
-              || realCoord.getZ () > rightTFSF.getZ ())
-          {
-            continue;
-          }
-
-          FieldValue incVal = yeeLayout->getHzFromIncidentH (approximateIncidentWaveH (realCoord));
-
-          val->setCurValue (val->getCurValue () - incVal);
-        }
-
-        dumperEx.init (t, CURRENT, processId, "3D-in-time-total-Ex");
-        dumperEx.dumpGrid (totalEx, startEx, endEx);
-
-        dumperEy.init (t, CURRENT, processId, "3D-in-time-total-Ey");
-        dumperEy.dumpGrid (totalEy, startEy, endEy);
-
-        dumperEz.init (t, CURRENT, processId, "3D-in-time-total-Ez");
-        dumperEz.dumpGrid (totalEz, startEz, endEz);
-
-        dumperHx.init (t, CURRENT, processId, "3D-in-time-total-Hx");
-        dumperHx.dumpGrid (totalHx, startHx, endHx);
-
-        dumperHy.init (t, CURRENT, processId, "3D-in-time-total-Hy");
-        dumperHy.dumpGrid (totalHy, startHy, endHy);
-
-        dumperHz.init (t, CURRENT, processId, "3D-in-time-total-Hz");
-        dumperHz.dumpGrid (totalHz, startHz, endHz);
-#endif
-      }
-    }
+//     if (t % 1000 == 0)
+//     {
+//       if (dumpRes)
+//       {
+//         BMPDumper<GridCoordinate3D> dumperEx;
+//         DATDumper<GridCoordinate3D> dumperDATEx;
+//         dumperDATEx.init (t, CURRENT, processId, "3D-in-time-Ex");
+//         dumperDATEx.dumpGrid (Ex, GridCoordinate3D (0), Ex.getSize ());
+//
+//         BMPDumper<GridCoordinate3D> dumperEy;
+//         DATDumper<GridCoordinate3D> dumperDATEy;
+//         dumperDATEy.init (t, CURRENT, processId, "3D-in-time-Ey");
+//         dumperDATEy.dumpGrid (Ey, GridCoordinate3D (0), Ey.getSize ());
+//
+//         BMPDumper<GridCoordinate3D> dumperEz;
+//         DATDumper<GridCoordinate3D> dumperDATEz;
+//         dumperDATEz.init (t, CURRENT, processId, "3D-in-time-Ez");
+//         dumperDATEz.dumpGrid (Ez, GridCoordinate3D (0), Ez.getSize ());
+//
+//         BMPDumper<GridCoordinate3D> dumperHx;
+//         DATDumper<GridCoordinate3D> dumperDATHx;
+//         dumperDATHx.init (t, CURRENT, processId, "3D-in-time-Hx");
+//         dumperDATHx.dumpGrid (Hx, GridCoordinate3D (0), Hx.getSize ());
+//
+//         BMPDumper<GridCoordinate3D> dumperHy;
+//         DATDumper<GridCoordinate3D> dumperDATHy;
+//         dumperDATHy.init (t, CURRENT, processId, "3D-in-time-Hy");
+//         dumperDATHy.dumpGrid (Hy, GridCoordinate3D (0), Hy.getSize ());
+//
+//         BMPDumper<GridCoordinate3D> dumperHz;
+//         DATDumper<GridCoordinate3D> dumperDATHz;
+//         dumperDATHz.init (t, CURRENT, processId, "3D-in-time-Hz");
+//         dumperDATHz.dumpGrid (Hz, GridCoordinate3D (0), Hz.getSize ());
+//         //
+//         // BMPDumper<GridCoordinate3D> dumperHx;
+//         // dumperHx.init (t, CURRENT, processId, "2D-TMz-in-time-Hx");
+//         // dumperHx.dumpGrid (Hx);
+//         //
+//         // BMPDumper<GridCoordinate3D> dumperHy;
+//         // dumperHy.init (t, CURRENT, processId, "2D-TMz-in-time-Hy");
+//         // dumperHy.dumpGrid (Hy);
+// #ifdef PARALLEL_GRID
+//         Grid<GridCoordinate3D> totalEx = Ex.gatherFullGrid ();
+//         Grid<GridCoordinate3D> totalEy = Ey.gatherFullGrid ();
+//         Grid<GridCoordinate3D> totalEz = Ez.gatherFullGrid ();
+//         Grid<GridCoordinate3D> totalHx = Hx.gatherFullGrid ();
+//         Grid<GridCoordinate3D> totalHy = Hy.gatherFullGrid ();
+//         Grid<GridCoordinate3D> totalHz = Hz.gatherFullGrid ();
+//
+//         for (grid_iter i = 0; i < totalEx.getSize ().calculateTotalCoord (); ++i)
+//         {
+//           FieldPointValue *val = totalEx.getFieldPointValue (i);
+//
+//           GridCoordinate3D pos = totalEx.calculatePositionFromIndex (i);
+//           GridCoordinate3D posAbs = totalEx.getTotalPosition (pos);
+//           GridCoordinateFP3D realCoord = yeeLayout->getExCoordFP (posAbs);
+//
+//           GridCoordinateFP3D leftTFSF = convertCoord (yeeLayout->getLeftBorderTFSF ());
+//           GridCoordinateFP3D rightTFSF = convertCoord (yeeLayout->getRightBorderTFSF ());
+//
+//           if (realCoord.getX () < leftTFSF.getX ()
+//               || realCoord.getY () < leftTFSF.getY ()
+//               || realCoord.getZ () < leftTFSF.getZ ()
+//               || realCoord.getX () > rightTFSF.getX ()
+//               || realCoord.getY () > rightTFSF.getY ()
+//               || realCoord.getZ () > rightTFSF.getZ ())
+//           {
+//             continue;
+//           }
+//
+//           FieldValue incVal = yeeLayout->getExFromIncidentE (approximateIncidentWaveE (realCoord));
+//
+//           val->setCurValue (val->getCurValue () - incVal);
+//         }
+//
+//         for (grid_iter i = 0; i < totalEy.getSize ().calculateTotalCoord (); ++i)
+//         {
+//           FieldPointValue *val = totalEy.getFieldPointValue (i);
+//
+//           GridCoordinate3D pos = totalEy.calculatePositionFromIndex (i);
+//           GridCoordinate3D posAbs = totalEy.getTotalPosition (pos);
+//           GridCoordinateFP3D realCoord = yeeLayout->getEyCoordFP (posAbs);
+//
+//           GridCoordinateFP3D leftTFSF = convertCoord (yeeLayout->getLeftBorderTFSF ());
+//           GridCoordinateFP3D rightTFSF = convertCoord (yeeLayout->getRightBorderTFSF ());
+//
+//           if (realCoord.getX () < leftTFSF.getX ()
+//               || realCoord.getY () < leftTFSF.getY ()
+//               || realCoord.getZ () < leftTFSF.getZ ()
+//               || realCoord.getX () > rightTFSF.getX ()
+//               || realCoord.getY () > rightTFSF.getY ()
+//               || realCoord.getZ () > rightTFSF.getZ ())
+//           {
+//             continue;
+//           }
+//
+//           FieldValue incVal = yeeLayout->getEyFromIncidentE (approximateIncidentWaveE (realCoord));
+//
+//           val->setCurValue (val->getCurValue () - incVal);
+//         }
+//
+//         for (grid_iter i = 0; i < totalEz.getSize ().calculateTotalCoord (); ++i)
+//         {
+//           FieldPointValue *val = totalEz.getFieldPointValue (i);
+//
+//           GridCoordinate3D pos = totalEz.calculatePositionFromIndex (i);
+//           GridCoordinate3D posAbs = totalEz.getTotalPosition (pos);
+//           GridCoordinateFP3D realCoord = yeeLayout->getEzCoordFP (posAbs);
+//
+//           GridCoordinateFP3D leftTFSF = convertCoord (yeeLayout->getLeftBorderTFSF ());
+//           GridCoordinateFP3D rightTFSF = convertCoord (yeeLayout->getRightBorderTFSF ());
+//
+//           if (realCoord.getX () < leftTFSF.getX ()
+//               || realCoord.getY () < leftTFSF.getY ()
+//               || realCoord.getZ () < leftTFSF.getZ ()
+//               || realCoord.getX () > rightTFSF.getX ()
+//               || realCoord.getY () > rightTFSF.getY ()
+//               || realCoord.getZ () > rightTFSF.getZ ())
+//           {
+//             continue;
+//           }
+//
+//           FieldValue incVal = yeeLayout->getEzFromIncidentE (approximateIncidentWaveE (realCoord));
+//
+//           val->setCurValue (val->getCurValue () - incVal);
+//         }
+//
+//         for (grid_iter i = 0; i < totalHx.getSize ().calculateTotalCoord (); ++i)
+//         {
+//           FieldPointValue *val = totalHx.getFieldPointValue (i);
+//
+//           GridCoordinate3D pos = totalHx.calculatePositionFromIndex (i);
+//           GridCoordinate3D posAbs = totalHx.getTotalPosition (pos);
+//           GridCoordinateFP3D realCoord = yeeLayout->getHxCoordFP (posAbs);
+//
+//           GridCoordinateFP3D leftTFSF = convertCoord (yeeLayout->getLeftBorderTFSF ());
+//           GridCoordinateFP3D rightTFSF = convertCoord (yeeLayout->getRightBorderTFSF ());
+//
+//           if (realCoord.getX () < leftTFSF.getX ()
+//               || realCoord.getY () < leftTFSF.getY ()
+//               || realCoord.getZ () < leftTFSF.getZ ()
+//               || realCoord.getX () > rightTFSF.getX ()
+//               || realCoord.getY () > rightTFSF.getY ()
+//               || realCoord.getZ () > rightTFSF.getZ ())
+//           {
+//             continue;
+//           }
+//
+//           FieldValue incVal = yeeLayout->getHxFromIncidentH (approximateIncidentWaveH (realCoord));
+//
+//           val->setCurValue (val->getCurValue () - incVal);
+//         }
+//
+//         for (grid_iter i = 0; i < totalHy.getSize ().calculateTotalCoord (); ++i)
+//         {
+//           FieldPointValue *val = totalHy.getFieldPointValue (i);
+//
+//           GridCoordinate3D pos = totalHy.calculatePositionFromIndex (i);
+//           GridCoordinate3D posAbs = totalHy.getTotalPosition (pos);
+//           GridCoordinateFP3D realCoord = yeeLayout->getHyCoordFP (posAbs);
+//
+//           GridCoordinateFP3D leftTFSF = convertCoord (yeeLayout->getLeftBorderTFSF ());
+//           GridCoordinateFP3D rightTFSF = convertCoord (yeeLayout->getRightBorderTFSF ());
+//
+//           if (realCoord.getX () < leftTFSF.getX ()
+//               || realCoord.getY () < leftTFSF.getY ()
+//               || realCoord.getZ () < leftTFSF.getZ ()
+//               || realCoord.getX () > rightTFSF.getX ()
+//               || realCoord.getY () > rightTFSF.getY ()
+//               || realCoord.getZ () > rightTFSF.getZ ())
+//           {
+//             continue;
+//           }
+//
+//           FieldValue incVal = yeeLayout->getHyFromIncidentH (approximateIncidentWaveH (realCoord));
+//
+//           val->setCurValue (val->getCurValue () - incVal);
+//         }
+//
+//         for (grid_iter i = 0; i < totalHz.getSize ().calculateTotalCoord (); ++i)
+//         {
+//           FieldPointValue *val = totalHz.getFieldPointValue (i);
+//
+//           GridCoordinate3D pos = totalHz.calculatePositionFromIndex (i);
+//           GridCoordinate3D posAbs = totalHz.getTotalPosition (pos);
+//           GridCoordinateFP3D realCoord = yeeLayout->getHzCoordFP (posAbs);
+//
+//           GridCoordinateFP3D leftTFSF = convertCoord (yeeLayout->getLeftBorderTFSF ());
+//           GridCoordinateFP3D rightTFSF = convertCoord (yeeLayout->getRightBorderTFSF ());
+//
+//           if (realCoord.getX () < leftTFSF.getX ()
+//               || realCoord.getY () < leftTFSF.getY ()
+//               || realCoord.getZ () < leftTFSF.getZ ()
+//               || realCoord.getX () > rightTFSF.getX ()
+//               || realCoord.getY () > rightTFSF.getY ()
+//               || realCoord.getZ () > rightTFSF.getZ ())
+//           {
+//             continue;
+//           }
+//
+//           FieldValue incVal = yeeLayout->getHzFromIncidentH (approximateIncidentWaveH (realCoord));
+//
+//           val->setCurValue (val->getCurValue () - incVal);
+//         }
+//
+//         dumperEx.init (t, CURRENT, processId, "3D-in-time-total-Ex");
+//         dumperEx.dumpGrid (totalEx, startEx, endEx);
+//
+//         dumperEy.init (t, CURRENT, processId, "3D-in-time-total-Ey");
+//         dumperEy.dumpGrid (totalEy, startEy, endEy);
+//
+//         dumperEz.init (t, CURRENT, processId, "3D-in-time-total-Ez");
+//         dumperEz.dumpGrid (totalEz, startEz, endEz);
+//
+//         dumperHx.init (t, CURRENT, processId, "3D-in-time-total-Hx");
+//         dumperHx.dumpGrid (totalHx, startHx, endHx);
+//
+//         dumperHy.init (t, CURRENT, processId, "3D-in-time-total-Hy");
+//         dumperHy.dumpGrid (totalHy, startHy, endHy);
+//
+//         dumperHz.init (t, CURRENT, processId, "3D-in-time-total-Hz");
+//         dumperHz.dumpGrid (totalHz, startHz, endHz);
+// #endif
+//       }
+    // }
   }
 
   if (dumpRes)
@@ -3117,26 +3117,26 @@ Scheme3D::performAmplitudeSteps (time_step startStep)
     performEySteps (t, EyStart, EyEnd);
     performEzSteps (t, EzStart, EzEnd);
 
-    if (!useTFSF)
-    {
-#if defined (PARALLEL_GRID)
-      if (processId == 0)
-#endif
-      {
-        for (grid_coord k = yeeLayout->getLeftBorderPML ().getZ (); k < yeeLayout->getRightBorderPML ().getZ (); ++k)
-        {
-          GridCoordinate3D pos (EzSize.getX () / 8, EzSize.getY () / 2, k);
-          FieldPointValue* tmp = Ez.getFieldPointValue (pos);
-
-  #ifdef COMPLEX_FIELD_VALUES
-          tmp->setCurValue (FieldValue (sin (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency),
-                                        cos (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency)));
-  #else /* COMPLEX_FIELD_VALUES */
-          tmp->setCurValue (sin (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency));
-  #endif /* !COMPLEX_FIELD_VALUES */
-        }
-      }
-    }
+//     if (!useTFSF)
+//     {
+// #if defined (PARALLEL_GRID)
+//       if (processId == 0)
+// #endif
+//       {
+//         for (grid_coord k = yeeLayout->getLeftBorderPML ().getZ (); k < yeeLayout->getRightBorderPML ().getZ (); ++k)
+//         {
+//           GridCoordinate3D pos (EzSize.getX () / 8, EzSize.getY () / 2, k);
+//           FieldPointValue* tmp = Ez.getFieldPointValue (pos);
+//
+//   #ifdef COMPLEX_FIELD_VALUES
+//           tmp->setCurValue (FieldValue (sin (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency),
+//                                         cos (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency)));
+//   #else /* COMPLEX_FIELD_VALUES */
+//           tmp->setCurValue (sin (gridTimeStep * t * 2 * PhysicsConst::Pi * sourceFrequency));
+//   #endif /* !COMPLEX_FIELD_VALUES */
+//         }
+//       }
+//     }
 
     for (int i = ExStart.getX (); i < ExEnd.getX (); ++i)
     {
