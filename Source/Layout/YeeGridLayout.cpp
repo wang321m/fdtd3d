@@ -494,12 +494,6 @@ YeeGridLayout::getMuCoordFP (GridCoordinate3D coord) const
 }
 
 GridCoordinateFP3D
-YeeGridLayout::getExCoordFP (GridCoordinate3D coord) const
-{
-  return convertCoord (coord - minExCoord) + minExCoordFP;
-}
-
-GridCoordinateFP3D
 YeeGridLayout::getEyCoordFP (GridCoordinate3D coord) const
 {
   return convertCoord (coord - minEyCoord) + minEyCoordFP;
@@ -527,12 +521,6 @@ GridCoordinateFP3D
 YeeGridLayout::getHzCoordFP (GridCoordinate3D coord) const
 {
   return convertCoord (coord - minHzCoord) + minHzCoordFP;
-}
-
-GridCoordinate3D
-YeeGridLayout::getEpsCoord (GridCoordinateFP3D coord) const
-{
-  return convertCoord (coord - minEpsCoordFP) + minEpsCoord;
 }
 
 GridCoordinate3D
